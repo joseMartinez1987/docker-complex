@@ -16,12 +16,12 @@ jobs:
       - run: docker build -t joseMartinez1987/react-test -f ./client/Dockerfile.dev ./client
       - run: docker run -e CI=true joseMartinez1987/react-test npm test
 
-      - run: docker build -t joseMartinez1987/multi-client ./client
-      - run: docker build -t joseMartinez1987/multi-nginx ./nginx
-      - run: docker build -t joseMartinez1987/multi-server ./server
-      - run: docker build -t joseMartinez1987/multi-worker ./worker
+      - run: docker build -t josemartinez1987/multi-client ./client
+      - run: docker build -t josemartinez1987/multi-nginx ./nginx
+      - run: docker build -t josemartinez1987/multi-server ./server
+      - run: docker build -t josemartinez1987/multi-worker ./worker
 
-      - run: docker push joseMartinez1987/multi-client
-      - run: docker push joseMartinez1987/multi-nginx
-      - run: docker push joseMartinez1987/multi-server
-      - run: docker push joseMartinez1987/multi-worker
+      - run: docker push josemartinez1987/multi-client
+      - run: docker push josemartinez1987/multi-nginx
+      - run: docker push josemartinez1987/multi-server
+      - run: docker push josemartinez1987/multi-worker
