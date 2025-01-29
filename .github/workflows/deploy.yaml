@@ -8,6 +8,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Delete Docker Hub Images
+      - run: |
+        IMAGE_NAMES=("multi-client" "multi-nginx" "multi-server" "multi-worker")
+        for IMAGE in "${IMAGE_NAMES[@]}"; do
+          curl -s -X DELETE \
+            -H "Authorization: Bearer ${{ secrets.DOCKER_ACCESS_TOKEN }}" \
+            "https://hub.docker.com/v2/repositories/josemartinez1987/$IMAGE/"
+          echo "Deleted image: $IMAGE"
+        done
+        
       - uses: actions/checkout@v3
       - run: echo "USERNAME:${{ secrets.DOCKER_USERNAME}}"
       - run: echo "USERPASSWORD:${{ secrets.DOCKER_PASSWORD}}"
@@ -26,6 +36,7 @@ jobs:
       - run: docker push josemartinez1987/multi-nginx
       - run: docker push josemartinez1987/multi-server
       - run: docker push josemartinez1987/multi-worker
+
 
       - name: Generate deployment package
         run: zip -r deploy.zip . -x '*.git*'
