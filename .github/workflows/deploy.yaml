@@ -9,42 +9,47 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Delete Docker Hub Images
-      - run: |
-        IMAGE_NAMES=("multi-client" "multi-nginx" "multi-server" "multi-worker")
-        for IMAGE in "${IMAGE_NAMES[@]}"; do
-          curl -s -X DELETE \
-            -H "Authorization: Bearer ${{ secrets.DOCKER_ACCESS_TOKEN }}" \
-            "https://hub.docker.com/v2/repositories/josemartinez1987/$IMAGE/"
-          echo "Deleted image: $IMAGE"
-        done
-        
+        run: |
+          IMAGE_NAMES=("multi-client" "multi-nginx" "multi-server" "multi-worker")
+          for IMAGE in "${IMAGE_NAMES[@]}"; do
+            curl -s -X DELETE \
+              -H "Authorization: Bearer ${{ secrets.DOCKER_ACCESS_TOKEN }}" \
+              "https://hub.docker.com/v2/repositories/josemartinez1987/$IMAGE/"
+            echo "Deleted image: $IMAGE"
+          done
+
       - uses: actions/checkout@v3
-      - run: echo "USERNAME:${{ secrets.DOCKER_USERNAME}}"
-      - run: echo "USERPASSWORD:${{ secrets.DOCKER_PASSWORD}}"
-      - run: echo "NaN:${{ secrets.SDF}}"
-      - run: |
+
+      - name: Docker Login
+        run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-      - run: docker build -t josemartinez1987/react-test -f ./client/Dockerfile.dev ./client
-      - run: docker run -e CI=true josemartinez1987/react-test npm test
 
-      - run: docker build -t josemartinez1987/multi-client ./client
-      - run: docker build -t josemartinez1987/multi-nginx ./nginx
-      - run: docker build -t josemartinez1987/multi-server ./server
-      - run: docker build -t josemartinez1987/multi-worker ./worker
+      - name: Build & Test React App
+        run: |
+          docker build -t josemartinez1987/react-test -f ./client/Dockerfile.dev ./client
+          docker run -e CI=true josemartinez1987/react-test npm test
 
-      - run: docker push josemartinez1987/multi-client
-      - run: docker push josemartinez1987/multi-nginx
-      - run: docker push josemartinez1987/multi-server
-      - run: docker push josemartinez1987/multi-worker
+      - name: Build Docker Images
+        run: |
+          docker build -t josemartinez1987/multi-client ./client
+          docker build -t josemartinez1987/multi-nginx ./nginx
+          docker build -t josemartinez1987/multi-server ./server
+          docker build -t josemartinez1987/multi-worker ./worker
 
+      - name: Push Docker Images
+        run: |
+          docker push josemartinez1987/multi-client
+          docker push josemartinez1987/multi-nginx
+          docker push josemartinez1987/multi-server
+          docker push josemartinez1987/multi-worker
 
-      - name: Generate deployment package
+      - name: Generate Deployment Package
         run: zip -r deploy.zip . -x '*.git*'
 
-      - name: Deploy to EB
+      - name: Deploy to Elastic Beanstalk
         uses: einaregilsson/beanstalk-deploy@v18
         with:
-          aws_access_key: ${{ secrets.ACCESS_KEY }}
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
           aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
           application_name: multi-docker
           environment_name: Multi-docker-env
